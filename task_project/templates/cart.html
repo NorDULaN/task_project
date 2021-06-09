@@ -194,8 +194,8 @@
                                     <span class="promocode-btn promo-success" {% if not cart.promocode %}style="display: none;"{% endif %}>
                                           Промокод:
                                           <span class="promo-free-shipping" style="display: none; float: right;">Бесплатная доставка с промокодом</span>
-                                          <span class="promo-total"> {% if cart.promocode %}{{ cart.promocode.amount }}{% endif %}</span>
-                                          <span class="promo-currency">{% if not cart.promocode or cart.promocode and cart.promocode.type == 1  %}₴{% elif cart.promocode and cart.promocode.type == 0 %}%{% endif %}</span>
+                                          <span class="promo-total"> {% if cart.promocode %}{{ cart.promocode.amount }}{% if cart.promocode.type == 3 %} для товаров без акции{% endif %}{% endif %}</span>
+                                          <span class="promo-currency">{% if not cart.promocode or cart.promocode and cart.promocode.type == 1 or cart.promocode.type == 3 %}₴{% elif cart.promocode and cart.promocode.type == 0 %}%{% endif %}</span>
                                           <span class="remove remove-promo"></span>
                                     </span>
                                     <span class="close close-promo"></span>

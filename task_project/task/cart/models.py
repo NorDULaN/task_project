@@ -123,7 +123,6 @@ class Cart(models.Model):
                     total_line = line.get_total()
                 saved, rest = self.promocode.get_saved_money(variant=line.variant, total=total_line, rest=rest)
                 saved_sum += saved
-
         return saved_sum
 
     def get_active_sales(self):
@@ -207,6 +206,12 @@ class Cart(models.Model):
 
     def get_total_without_sales(self):
         subtotals = [line.get_total_without_sale() for line in self.lines.all()]
+        if not subtotals:
+            return 0
+        return sum_prices(subtotals)
+
+    def get_total_with_sales_return_zero(self):
+        subtotals = [line.get_total_with_sale_return_zero() for line in self.lines.all()]
         if not subtotals:
             return 0
         return sum_prices(subtotals)
@@ -360,6 +365,16 @@ class CartLine(models.Model):
             amount = Decimal('0.00')
         return amount.quantize(CENTS)
 
+    def get_total_with_sale_return_zero(self):
+        try:
+            if self.get_price_per_item_with_sales_return_zero() != 0:
+                amount = self.get_price_per_item_with_sales_return_zero() * self.quantity
+            else:
+                amount = Decimal('0.00')
+        except:
+            amount = Decimal('0.00')
+        return amount.quantize(CENTS)
+
     # pylint: disable=W0221
     def get_price_per_item(self):
         """Return the unit price of the line."""
@@ -367,6 +382,11 @@ class CartLine(models.Model):
 
     def get_price_per_item_without_sale(self):
         return self.variant.get_price_per_item(without_sale=True)
+
+    def get_price_per_item_with_sales_return_zero(self):
+        return self.variant.get_price_per_item_without_sales()
+
+
 
     def is_shipping_required(self):
         """Return `True` if the related product variant requires shipping."""

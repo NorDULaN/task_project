@@ -194,7 +194,6 @@ class ProductVariant(models.Model):
     description = models.TextField(blank=True, default='')
     short_description = models.TextField(blank=True, default='', max_length=256)
 
-
     priority = models.IntegerField(default=1000, blank=True)
 
     price_override = models.DecimalField(max_digits=12, decimal_places=2,
@@ -203,7 +202,6 @@ class ProductVariant(models.Model):
     show_in_discounts = models.BooleanField(default=False)
     order = models.PositiveIntegerField(default=0, blank=True,
                                         help_text='Product with the highest number will be the first in the list')
- 
 
     class Meta:
         app_label = 'product'
@@ -212,7 +210,6 @@ class ProductVariant(models.Model):
     def __str__(self):
         return self.name
 
-  
     def get_category_name(self):
         category = Category.objects.filter(id_item=self.product.category.id).first()
         return category.name
@@ -263,7 +260,6 @@ class ProductVariant(models.Model):
             'variant_id': self.pk,
            }
 
-   
     def display_product(self):
         variant_display = str(self)
         product_display = (
@@ -279,6 +275,12 @@ class ProductVariant(models.Model):
             sale = self.sales.get_actual_sale()
             if sale:
                 return sale.get_price()
+        return self.price_override
+
+    def get_price_per_item_without_sales(self):
+        sale = self.sales.get_actual_sale()
+        if sale:
+            return 0
         return self.price_override
 
     def is_shipping_required(self):

@@ -12,7 +12,7 @@ class Promocode(models.Model):
     TYPES = (
         (TYPE_PERCENT, 'Percent'),
         (TYPE_ABSOLUTE, 'Absolute'),
-        (TYPE_ABSOLUTE_FOR_EACH, 'Absolute'),
+        (TYPE_ABSOLUTE_FOR_EACH, 'Absolute for each'),
         (TYPE_FREE_SHIPPING, 'Free shipping')
     )
     admin_name = models.CharField(blank=True, default='', max_length=255)
@@ -135,9 +135,12 @@ class Promocode(models.Model):
                 saved = total
                 rest -= total
 
+        elif self.type == self.TYPE_ABSOLUTE_FOR_EACH:
+            saved = rest
+
         return saved, rest
 
-    def is_valid(self, user, order_sum, variants_ids):
+    def is_valid(self, user, order_sum, variants_ids, order_sum_without_sale):
 
         now = timezone.now()
 
@@ -159,6 +162,10 @@ class Promocode(models.Model):
         products_ids = self.get_all_variants_ids()
         if not variants_ids & products_ids:
             return False, '__promocode__error__no_products_for_promocode__'
+
+        if self.exclude_active_sales_products:
+            if self.min_order_sum > 0 and order_sum_without_sale < self.min_order_sum and variants_ids & products_ids:
+                return False, '__promocode__error__min_order_sum__and__no_products_for_promocode'
 
         return True, '__promocode__msg__success__'
 

@@ -32,8 +32,8 @@ def add_promocode_to_cart(request, cart):
         })
 
     variants_ids = set(cart.lines.values_list('variant_id', flat=True))
-
-    is_valid, error = promo.is_valid(user=request.user, order_sum=cart.get_total(), variants_ids=variants_ids)
+    is_valid, error = promo.is_valid(user=request.user, order_sum=cart.get_total(), variants_ids=variants_ids,
+                                     order_sum_without_sale=cart.get_total_with_sales_return_zero())
     msg = error
 
     if error == '__promocode__error__min_order_sum__':
