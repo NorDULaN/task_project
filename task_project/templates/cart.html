@@ -1,0 +1,376 @@
+{% load discount %}
+
+<html lang="ru"><head>
+
+  <title>Ваша корзина </title>
+  
+
+
+
+      <link rel="stylesheet" href="/static/styles/typography.css?v=7">
+    <link rel="stylesheet" href="/static/styles/cart.css?v=7">
+    <link rel="stylesheet" href="/static/styles/related.css?v=7">
+ <link rel="stylesheet" href="/static/styles/template_styles.css?v=7">
+ <link rel="stylesheet" href="/static/styles/about/fonts.css?v=7">
+
+    <script type="text/javascript" src="/static/scripts/jquery.min.js?v=7" charset="utf-8"></script>
+
+<script>
+    $(document).ready(function () {
+        /*placeholder*/
+        (function ($) {
+            $.fn.phAnim = function (options) {
+
+                // Set default option
+                var settings = $.extend({}, options),
+                    label,
+                    ph;
+
+                // get label elem
+                function getLabel(input) {
+                    return $(input).parent().find('label');
+                }
+
+                // generate an id
+                function makeid() {
+                    var text = "";
+                    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+                    for (var i = 0; i < 5; i++)
+                        text += possible.charAt(Math.floor(Math.random() * possible.length));
+                    return text;
+                }
+
+                return this.each(function () {
+
+                    // check if the input has id or create one
+                    if ($(this).attr('id') == undefined) {
+                        $(this).attr('id', makeid());
+                    }
+
+                    // check if elem has label or create one
+                    if (getLabel($(this)).length == 0) {
+                        // check if elem has placeholder
+                        if ($(this).attr('placeholder') != undefined) {
+                            ph = $(this).attr('placeholder');
+                            $(this).attr('placeholder', '');
+                            // create a label with placeholder text
+                            $(this).parent().prepend('<label for=' + $(this).attr('id') + '>' + ph + '</label>');
+                        }
+                    } else {
+                        // if elem has label remove placeholder
+                        $(this).attr('placeholder', '');
+                        // check label for attr or set it
+                        if (getLabel($(this)).attr('for') == undefined) {
+                            getLabel($(this)).attr('for', $(this).attr('id'));
+                        }
+                    }
+
+                    var tmp_label = getLabel($(this));
+                    $(this).on('focus', function () {
+                        tmp_label.addClass('active focusIn');
+                    }).on('focusout', function () {
+                        if ($(this).val() == '') {
+                            tmp_label.removeClass('active');
+                        }
+                        tmp_label.removeClass('focusIn');
+                    });
+
+                    // new_design check if any inputs have values
+                    if ($(this).val() == '') {
+                        tmp_label.removeClass('active');
+                    } else {
+                        tmp_label.addClass('active');
+                    }
+                });
+            };
+        }(jQuery));
+
+
+        $('.input-parent input').phAnim();
+        $('.input-parent textarea').phAnim();
+
+        /*placeholder end*/
+    });
+</script>
+
+
+
+  <script>
+    var ecomm_active = false;
+    var currencyCode = 'EUR';
+    var shop_phone_mask = "+7(999)999-99-99";
+  </script>
+
+
+  <script>
+    shop_phone_mask = "+38 (999) 999-99-99";
+  </script>
+
+
+    <script>
+    ecomm_active = true;
+    currencyCode = 'UAH';
+	var csrftoken = "{{ csrf_token }}";
+    </script>
+
+
+
+</head>
+
+
+<body class="no-touch">
+
+
+<div class="wrapper">
+
+    <div class="container cart-container">
+        <div class="cart">
+             {% if cart_lines %}
+                <div class="cart__header">
+                    Ваша корзина
+                </div>
+                <div class="sticky-container">
+                    <div class="cart__content">
+                    <div class="cart__item">
+                        {% for line in cart_lines %}
+                            <div class="item" data-id="{{ line.variant.product.id }}"
+                                 data-category="{{ line.variant.category_name }}"
+                                 action="{% url 'cart:update-line' variant_id=line.variant.id %}">
+                                <div class="left__side">
+                                    <div class="image">
+                                        <img src='/static/images/product.png' alt="">
+                                    </div>
+                                    <div class="name">
+                                        <a href='{{ line.variant.get_absolute_url }}'>{{ line.variant.name }}</a>
+                                    </div>
+                                </div>
+                                <div class="right__side">
+                                    <div class="quantity">
+                                        <div class="jq-number">
+                                            <div class="jq-number__field">
+                                                <input type="number" value="{{ line.quantity }}" min="1">
+                                            </div>
+                                            <div class="jq-number__spin minus"></div>
+                                            <div class="jq-number__spin plus"></div>
+                                        </div>
+                                    </div>
+                                    <div class="price">
+                                        {% if line.variant.has_active_sales %}
+                                            {{ line.get_total|floatformat:"-2" }} ₴
+                                            <s style="margin: 0 0 0 0.7em; color: #868686;">{{ line.variant.price_override|floatformat:"-2" }} ₴</s>
+                                        {% else %}
+                                            {{ line.get_total|floatformat:"-2" }} ₴
+                                        {% endif %}
+                                    </div>
+                                    <div class="close">
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="total">
+                            Всего
+                            <div class="price">
+                                <span class="total-cart">{{ cart.get_total|floatformat:"-2" }}</span> ₴
+                            </div>
+                        </div>
+                    </div>
+					
+                    </div>
+                    <div class="aside">
+                        <aside class="right-content">
+                            <div class="total-block">
+                                <div class="title">
+                                      Кол-во товаров: {{ cart.count.total_quantity }}
+
+                                </div>
+                                <div class="price">{{ cart_total|floatformat:"-2" }} ₴</div>
+                            </div>
+                            
+
+                              <div class="promocode-block">
+                                    <span class="promocode-btn close-promo">Активировать промокод.</span>
+                                    <span class="promocode-btn promo-success" {% if not cart.promocode %}style="display: none;"{% endif %}>
+                                          Промокод:
+                                          <span class="promo-free-shipping" style="display: none; float: right;">Бесплатная доставка с промокодом</span>
+                                          <span class="promo-total"> {% if cart.promocode %}{{ cart.promocode.amount }}{% endif %}</span>
+                                          <span class="promo-currency">{% if not cart.promocode or cart.promocode and cart.promocode.type == 1  %}₴{% elif cart.promocode and cart.promocode.type == 0 %}%{% endif %}</span>
+                                          <span class="remove remove-promo"></span>
+                                    </span>
+                                    <span class="close close-promo"></span>
+                                    <div class="promocode-block-input">
+                                        <div class="promo">Введите промокод.</div>
+                                        <input type="text" id="promocode" name="promocode">
+                                        <p class="promocode-msg text-error" style="display:none;"></p>
+                                        <button class="button submit-promocode">
+                                            Применить
+                                        </button>
+                                    </div>
+                                </div>
+
+
+                         {% if sales %}
+                              {% for sale, value in sales.items %}
+                                  <div class="total-block final" style="margin-top: 0 !important; {% if forloop.counter > 1 %}border-top: none !important; padding-top: 0 !important;{% endif %}">
+                                      <div class="title">
+                                          {% if sale and sale != 'none' %}
+                                              {{ sale }}
+                                          {% else %}
+                                              Скидка
+                                          {% endif %}
+                                      </div>
+                                      <div class="price" {% if forloop.counter > 1 %}style="top: 0 !important;"{% endif %}>
+                                          {{ value|floatformat:"-2" }} ₴
+                                      </div>
+                                  </div>
+                              {% endfor %}
+                          {% endif %}
+                            
+                            <div class="total-block final ">
+                              <div class="title">
+                                  Итого:
+                              </div>
+                              <div class="price">
+                                  <span class="total-cart">{{ cart.get_total|floatformat:"-2" }}</span> ₴
+                              </div>
+                          </div>
+                          
+                        <div class="buttons">
+                          
+                            <a data-animation-duration="500" data-src="#one-click-order" data-fancybox="" class="one-click-order-btn">
+                              Купить в один клик
+                            </a>
+                          
+                          <a href="/checkout/">Оформить заказ</a>
+                        </div>
+                        </aside>
+                    </div>
+                </div>
+             {% else %}
+                <div class="cart__empty">
+                    <div class="cart__empty__icon"></div>
+                    <div class="cart__header">Ваша корзина пуста</div>
+                    <div class="cart__empty__choices">
+                        <div class="cart__empty__choices__header">
+                           Начните выбор здесь:
+                        </div>
+                        <a href="/">Домашняя страница</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+
+    <script type="text/javascript" src="/static/scripts/quantity.js?v=7" charset="utf-8"></script>
+    <script type="text/javascript" src="/static/scripts/about/sticky-sidebar.min.js?v=7" charset="utf-8"></script>
+    <script type="text/javascript" src="/static/scripts/cart.js?v=7" charset="utf-8"></script>
+    <script>
+        $(document).ready(function () {
+            $('.close-promo').click(function () {
+                const $block = $(this).parent();
+                const promoPk = $(this).attr('data-promo-pk');
+                if (promoPk !== undefined) {
+                    $.ajax({
+                        url: "/promocodes/clear_promocode/",
+                        method: "get",
+                        success: function (result, text, xhr) {
+                            window.location.reload();
+                        },
+                        error: function (error) {
+                            location.reload();
+                        }
+                    });
+                } else {
+                    if ($block.hasClass('current')) {
+                        $block.removeClass('current');
+                        $block.find('.promocode-block-input').slideUp();
+                    } else {
+                        $block.addClass('current');
+                        $block.find('.promocode-block-input').slideDown();
+                    }
+                }
+            });
+
+            $('.submit-promocode').on('click', function () {
+
+                const $btn = $(this);
+                const $block = $btn.parent().parent();
+                const $promocodeMsg = $(this).parent().find('.promocode-msg');
+
+                let promocode = $('#promocode').val();
+                let isDiscountCard = false;
+                if ($block.hasClass('discount-card-block')) {
+                    promocode = $('#discount_card').val();
+                    isDiscountCard = true;
+                }
+
+                $promocodeMsg.hide();
+
+                $.ajax({
+                    url: "/promocodes/add_promocode/",
+                    method: "get",
+                    data: {
+                        'promocode': promocode,
+                        'is_discount_card': isDiscountCard
+                    },
+                    success: function (result, text, xhr) {
+                        $promocodeMsg.text(result['msg']);
+                        if (result['status'] === 'failed') {
+                            $promocodeMsg.removeClass('success-promocode').addClass('error-promocode');
+                        } else {
+                            $promocodeMsg.removeClass('error-promocode').addClass('success-promocode');
+                            $block.find('.promocode-btn').not('.promo-success').hide();
+                            $('.total-cart').text(result['cart_total']);
+
+                            if (result['promo_type'] === 2) {
+                               $block.find('.promocode-btn.promo-success').find('.promo-free-shipping').show();
+                               $block.find('.promocode-btn.promo-success').find('.promo-currency').hide();
+                            } else {
+                                $block.find('.promocode-btn.promo-success').find('.promo-total').text(result['saved_money']);
+                            }
+                            if (result['is_tax_active']) {
+                                $('.total-tax').text(result['tax_amount']);
+                            }
+                            $block.find('.promocode-btn.promo-success').show();
+                            $block.find('.close').trigger('click');
+                            $block.find('.close-promo').attr('data-promo-pk', result['promo_pk']);
+                            $block.find('.close-promo').show();
+
+                            $('.promocode-block').not($block).addClass('disabled-promo');
+
+                        }
+                        $promocodeMsg.show();
+                    },
+                    error: function (error) {
+                        location.reload();
+                    }
+                });
+
+            });
+
+            $('.remove-promo').click(function () {
+                $(this).closest(".promocode-btn").hide();
+                let promocode = $('#promocode').val();
+                $.ajax({
+                        url: "/promocodes/remove_promocode/",
+                        method: "get",
+                        data: {
+                            'promocode': promocode,
+                            'is_discount_card': false
+                        },
+                        success: function (result, text, xhr) {
+                            window.location.reload();
+                        },
+                        error: function (error) {
+                            location.reload();
+                        }
+                   });
+             });
+        });
+    </script>
+
+</body></html>

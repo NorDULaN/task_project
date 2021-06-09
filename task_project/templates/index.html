@@ -1,0 +1,72 @@
+{% csrf_token %}
+<script>
+var csrftoken = document.getElementsByTagName('input')[0].value;
+</script>
+<script type="text/javascript" src="/static/scripts/jquery.min.js?v=7" charset="utf-8"></script>
+<script type="text/javascript" src="/static/scripts/cart.js"></script>
+
+
+Посомтреть добавленные в корзину товары - <a href="/cart">Корзина</a>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<style>
+.button-btn {
+	background: blue;padding: 5px;color: white;display: inline-block;width: auto;cursor: pointer; text-decoration: none;
+}
+
+</style>
+
+
+
+
+   {% for product in products %}
+              <div class="">
+                <div style="text-decoration:none" >
+                            <div class="">
+                              <div class="title">{{ product.variant.name }}</div>
+                             
+
+                                {% if product.variant.status == 0 and product.variant.price_override %}
+                                      <span style="color: #2b1b35; font-size: 18px;display: block">
+                                        <span class="price">
+                                          {{ product.variant.get_price_per_item|floatformat:"-2" }} ₴
+                                          {% if product.variant.get_sales %}
+                                            <s style="margin: 0 0 0 0.7em; color: #868686;">{{ product.variant.price_override|floatformat:"-2" }} ₴</s>
+                                          {% endif %}
+                                        </span>
+                                      </span>
+
+									  {% if product.variant.name in cart_lines %}
+										  <a href="{% url 'cart:index' %}"
+											 class="button-btn">Перейти в корзину</a>
+										{% else %}
+										  <a data-href="{% url 'product:add-to-cart' cat=product.category.slug path=product.variant.path %}"
+											 class="button-btn product__buy__button">Добавить в корзину</a>
+										{% endif %}
+                                {% endif %}
+  
+                              {% if product.variant.status == 1 %}
+                                  <span style="color: #2b1b35">Под заказ</span>
+                                  {% if product.variant.price_override %}
+                                      <span style="color: #2b1b35; font-size: 18px;display: block">
+                                        <span class="price">
+                                          {{ product.variant.get_price_per_item|floatformat:"-2" }} ₴
+                                            {% if product.variant.get_sales %}
+                                                <s style="margin: 0 0 0 0.7em; color: #868686;">{{ product.variant.price_override|floatformat:"-2" }} ₴</s>
+                                            {% endif %}
+                                        </span>
+                                      </span>
+                                  {% endif %}
+                              {% elif product.variant.status == 2 %}
+                                  <span style="color: #2b1b35">Нет в наличии</span>
+                              {% endif %}
+                            </div>
+                </div>
+              </div>
+			  <br>
+   {% endfor %}
